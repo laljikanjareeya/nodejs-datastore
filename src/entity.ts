@@ -308,13 +308,28 @@ export namespace entity {
    * });
    * // <Buffer 68 65 6c 6c 6f>
    */
-  export function decodeValueProto(valueProto: ValueProto) {
+  export function decodeValueProto(
+    valueProto: ValueProto,
+    typeCast?: Function
+  ) {
+    if (typeof typeCast === 'function') {
+      return typeCast!(valueProto, () => {
+        return decodeValue(valueProto, typeCast);
+      });
+    } else {
+      return decodeValue(valueProto, typeCast);
+    }
+  }
+
+  function decodeValue(valueProto: ValueProto, typeCast?: Function) {
     const valueType = valueProto.valueType!;
     const value = valueProto[valueType];
 
     switch (valueType) {
       case 'arrayValue': {
-        return value.values.map(entity.decodeValueProto);
+        return value.values.map((val: ValueProto) => {
+          return entity.decodeValueProto(val, typeCast);
+        });
       }
 
       case 'blobValue': {
@@ -334,7 +349,7 @@ export namespace entity {
       }
 
       case 'entityValue': {
-        return entity.entityFromEntityProto(value);
+        return entity.entityFromEntityProto(value, typeCast);
       }
 
       case 'keyValue': {
@@ -351,7 +366,7 @@ export namespace entity {
       }
     }
   }
-
+  
   /**
    * Convert any native value to a protobuf Value message object.
    *
@@ -482,16 +497,20 @@ export namespace entity {
    * //   name: 'Stephen'
    * // }
    */
-  // tslint:disable-next-line no-any
-  export function entityFromEntityProto(entityProto: EntityProto): any {
+  export function entityFromEntityProto(
+    entityProto: EntityProto,
+    typeCast?: Function
+    // tslint:disable-next-line: no-any
+  ): any {
     // tslint:disable-next-line no-any
     const entityObject: any = {};
     const properties = entityProto.properties || {};
 
     // tslint:disable-next-line forin
     for (const property in properties) {
-      const value = properties[property];
-      entityObject[property] = entity.decodeValueProto(value);
+      const value: ValueProto = properties[property];
+      value.name = property;
+      entityObject[property] = entity.decodeValueProto(value, typeCast);
     }
 
     return entityObject;
@@ -691,9 +710,9 @@ export namespace entity {
    *   //
    * });
    */
-  export function formatArray(results: ResponseResult[]) {
+  export function formatArray(results: ResponseResult[], typeCast?: Function) {
     return results.map(result => {
-      const ent = entity.entityFromEntityProto(result.entity);
+      const ent = entity.entityFromEntityProto(result.entity, typeCast);
       ent[entity.KEY_SYMBOL] = entity.keyFromKeyProto(result.entity.key!);
       return ent;
     });
@@ -1134,6 +1153,7 @@ export interface ValueProto {
   values?: ValueProto[];
   // tslint:disable-next-line no-any
   value?: any;
+  name?: string;
 }
 
 export interface EntityProto {

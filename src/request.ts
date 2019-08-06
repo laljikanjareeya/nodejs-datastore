@@ -656,7 +656,7 @@ class DatastoreRequest {
 
     let info: RunQueryInfo;
 
-    this.runQueryStream(query, options)
+    this.runQueryStream(query, options, options.typeCast)
       .on('error', callback)
       .on('info', info_ => {
         info = info_;
@@ -699,7 +699,11 @@ class DatastoreRequest {
    *     this.end();
    *   });
    */
-  runQueryStream(query: Query, options: RunQueryStreamOptions = {}): Transform {
+  runQueryStream(
+    query: Query,
+    options: RunQueryStreamOptions = {},
+    typeCast?: Function
+  ): Transform {
     query = extend(true, new Query(), query);
 
     const makeRequest = (query: Query) => {
@@ -748,7 +752,7 @@ class DatastoreRequest {
       let entities: Any[] = [];
 
       if (resp.batch.entityResults) {
-        entities = entity.formatArray(resp.batch.entityResults);
+        entities = entity.formatArray(resp.batch.entityResults, typeCast);
       }
 
       // Emit each result right away, then get the rest if necessary.

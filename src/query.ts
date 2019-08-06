@@ -518,6 +518,7 @@ export {Query};
 
 export interface RunQueryOptions {
   consistency?: 'strong' | 'eventual';
+  typeCast?: Function;
 }
 
 export interface RunQueryCallback {
