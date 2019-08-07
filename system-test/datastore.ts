@@ -794,8 +794,7 @@ describe('Datastore', () => {
       });
       const query = datastore.createQuery('Student');
       const reqOption: RunQueryOptions = {
-        // tslint:disable-next-line: no-any
-        typeCast: (field: ValueProto, next: any) => {
+        typeCast: (field: ValueProto, next: Function) => {
           if (field.valueType === 'stringValue' && field.name === 'fullName') {
             return field[field.valueType].toUpperCase();
           } else {

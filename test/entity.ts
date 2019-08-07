@@ -17,7 +17,7 @@
 import * as assert from 'assert';
 import * as extend from 'extend';
 import {Datastore} from '../src';
-import {Entity, entity} from '../src/entity';
+import {Entity, entity, ValueProto} from '../src/entity';
 
 describe('entity', () => {
   let entity: Entity;
@@ -316,6 +316,34 @@ describe('entity', () => {
       };
 
       assert.strictEqual(entity.decodeValueProto(valueProto), expectedValue);
+    });
+
+    it('should return the value using typeCast function', () => {
+      const typeCastFunction = (field: ValueProto, next: Function) => {
+        if (field.valueType === 'stringValue') {
+          return field[field.valueType] === '1';
+        } else {
+          return next();
+        }
+      };
+      const stringValueProto = {
+        valueType: 'stringValue',
+        stringValue: '1',
+      };
+
+      const booleanValueProto = {
+        valueType: 'booleanValue',
+        booleanValue: false,
+      };
+
+      assert.strictEqual(
+        entity.decodeValueProto(stringValueProto, typeCastFunction),
+        true
+      );
+      assert.strictEqual(
+        entity.decodeValueProto(booleanValueProto, typeCastFunction),
+        false
+      );
     });
   });
 

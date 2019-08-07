@@ -1197,8 +1197,7 @@ describe('Request', () => {
     it('should create custom type `1` as true `0` as false', done => {
       const expectedResult = [{a: true}, {b: false}];
       const options = {
-        // tslint:disable-next-line: no-any
-        typeCast: (field: ValueProto, next: any) => {
+        typeCast: (field: ValueProto, next: Function) => {
           if (field.valueType === 'stringValue') {
             return field[field.valueType] === '1'; // 1 = true, 0 = false
           } else {
