@@ -516,6 +516,7 @@ export namespace entity {
    *
    * @private
    * @param {object} entityProto The protocol entity object to convert.
+   * @param {function} [typeCast] The typeCast function to handle type casting.
    * @returns {object}
    *
    * @example
@@ -734,6 +735,7 @@ export namespace entity {
    * @param {object[]} results The response array.
    * @param {object} results.entity An entity object.
    * @param {object} results.entity.key The entity's key.
+   * @param {function} [typeCast] The typeCast function to handle type casting.
    * @returns {object[]}
    *
    * @example

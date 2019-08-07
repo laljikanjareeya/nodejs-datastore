@@ -396,6 +396,7 @@ class Query {
    *     If not specified, default values are chosen by Datastore for the
    *     operation. Learn more about strong and eventual consistency
    *     [here](https://cloud.google.com/datastore/docs/articles/balancing-strong-and-eventual-consistency-with-google-cloud-datastore).
+   * @param {function} [options.typeCast] The typeCast function to handle type casting.
    * @param {function} [callback] The callback function. If omitted, a readable
    *     stream instance is returned.
    * @param {?error} callback.err An error returned while making this request

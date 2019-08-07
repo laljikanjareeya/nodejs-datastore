@@ -571,6 +571,7 @@ class DatastoreRequest {
    *     [here](https://cloud.google.com/datastore/docs/articles/balancing-strong-and-eventual-consistency-with-google-cloud-datastore).
    * @param {object} [options.gaxOptions] Request configuration options, outlined
    *     here: https://googleapis.github.io/gax-nodejs/global.html#CallOptions.
+   * @param {function} [options.typeCast] The typeCast function to handle type casting.
    * @param {function} [callback] The callback function. If omitted, a readable
    *     stream instance is returned.
    * @param {?error} callback.err An error returned while making this request
@@ -624,6 +625,27 @@ class DatastoreRequest {
    *   });
    * });
    *
+   * //-
+   * // returns user define type using typeCast function
+   * of
+   * // the entities .
+   * //-
+   * const config = {
+   * typeCast: (field, next)=> {
+   * if (field.valueType === 'stringValue' && field.name ==='isActive'){
+   *    return field[field.valueType] === '1';
+   *  } else {
+   *    return next();
+   *  }
+   * }
+   * const query = datastore.createQuery('Lion');
+   *
+   * datastore.runQuery(keysOnlyQuery, config, (err, entities) => {
+   *   const keys = entities.map((entity) => {
+   *     return entity[datastore.KEY];
+   *   });
+   * });
+   * 
    * //-
    * // A keys-only query returns just the keys of the result entities instead
    * of
@@ -679,6 +701,7 @@ class DatastoreRequest {
    * @param {object} [options] Optional configuration.
    * @param {object} [options.gaxOptions] Request configuration options, outlined
    *     here: https://googleapis.github.io/gax-nodejs/global.html#CallOptions.
+   * @param {function} [typeCast] The typeCast function to handle type casting.
    *
    * @example
    * datastore.runQueryStream(query)
@@ -692,6 +715,21 @@ class DatastoreRequest {
    *     // All entities retrieved.
    *   });
    *
+   * //-
+   * // returns user define type using typeCast function
+   * //-
+   * function typeCastFunction(field, next) => {
+   *  if (field.valueType === 'stringValue' && field.name ==='isActive') {
+   *      return field[field.valueType] === '1';
+   *    } else {
+   *          return next();
+   *     }
+   *  }
+   * datastore.runQueryStream(query,{},typeCastFunction)
+   *   .on('data', (entity) => {
+   *     this.end();
+   *   });
+   * 
    * //-
    * // If you anticipate many results, you can end a stream early to prevent
    * // unnecessary processing and API requests.
