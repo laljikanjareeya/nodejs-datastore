@@ -645,7 +645,7 @@ class DatastoreRequest {
    *     return entity[datastore.KEY];
    *   });
    * });
-   * 
+   *
    * //-
    * // A keys-only query returns just the keys of the result entities instead
    * of
@@ -729,7 +729,7 @@ class DatastoreRequest {
    *   .on('data', (entity) => {
    *     this.end();
    *   });
-   * 
+   *
    * //-
    * // If you anticipate many results, you can end a stream early to prevent
    * // unnecessary processing and API requests.

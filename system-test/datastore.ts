@@ -16,6 +16,8 @@
 
 import * as assert from 'assert';
 import {Datastore} from '../src';
+import {RunQueryOptions} from '../src/query';
+import {ValueProto} from '../src/entity';
 const assertRejects = require('assert-rejects');
 
 describe('Datastore', () => {
@@ -778,6 +780,32 @@ describe('Datastore', () => {
       await transaction.get(key);
       transaction.save({key, data: {}});
       await assertRejects(transaction.commit());
+    });
+  });
+
+  describe('typeCast', () => {
+    it('should return user defined type using typeCast Function', async () => {
+      const studentKey = datastore.key(['Student']);
+      await datastore.save({
+        key: studentKey,
+        data: {
+          fullName: 'Full name',
+        },
+      });
+      const query = datastore.createQuery('Student');
+      const reqOption: RunQueryOptions = {
+        // tslint:disable-next-line: no-any
+        typeCast: (field: ValueProto, next: any) => {
+          if (field.valueType === 'stringValue' && field.name === 'fullName') {
+            return field[field.valueType].toUpperCase();
+          } else {
+            return next();
+          }
+        },
+      };
+      const [results] = await datastore.runQuery(query, reqOption);
+      assert.strictEqual(results![0].fullName, 'FULL NAME');
+      await datastore.delete(studentKey);
     });
   });
 });
