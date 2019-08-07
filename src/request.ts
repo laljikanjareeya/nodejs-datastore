@@ -650,13 +650,15 @@ class DatastoreRequest {
     cb?: RunQueryCallback
   ): void | Promise<RunQueryResponse> {
     const options =
-      typeof optionsOrCallback === 'object' ? optionsOrCallback : {};
+      typeof optionsOrCallback === 'object' && optionsOrCallback
+        ? optionsOrCallback
+        : {};
     const callback =
       typeof optionsOrCallback === 'function' ? optionsOrCallback : cb!;
 
     let info: RunQueryInfo;
 
-    this.runQueryStream(query, options, options.typeCast)
+    this.runQueryStream(query, options, options!.typeCast)
       .on('error', callback)
       .on('info', info_ => {
         info = info_;

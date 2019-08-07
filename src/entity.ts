@@ -286,10 +286,11 @@ export namespace entity {
   }
 
   /**
-   * Convert a protobuf Value message to its native value.
+   * Convert a protobuf Value message to its native value with type casting.
    *
    * @private
    * @param {object} valueProto The protobuf Value message to convert.
+   * @param {function} [typeCast] The typeCast function to handle type casting.
    * @returns {*}
    *
    * @example
@@ -302,6 +303,21 @@ export namespace entity {
    *   stringValue: 'Hi'
    * });
    * // 'Hi'
+   * decodeValueProto({
+   *   stringValue: '1',
+   *   valueType: 'stringValue',
+   *   name:'isActive'
+   * },{
+   *         typeCast: function(field, next) {
+   *             if (field.valueType === 'stringValue' && field.name==='isActive') {
+   *                 return field[field.valueType] === '1';
+   *             } else {
+   *                 return next()
+   *             }
+   *         }
+   *   }
+   * );
+   * // true
    *
    * decodeValueProto({
    *   blobValue: Buffer.from('68656c6c6f')
@@ -320,7 +336,29 @@ export namespace entity {
       return decodeValue(valueProto, typeCast);
     }
   }
-
+  /**
+   * Convert a protobuf Value message to its native value without type casting.
+   *
+   * @private
+   * @param {object} valueProto The protobuf Value message to convert.
+   * @param {function} [typeCast] The typeCast function to handle type casting for array and object.
+   * @returns {*}
+   *
+   * @example
+   * decodeValue({
+   *   booleanValue: false
+   * });
+   * // false
+   *
+   * decodeValue({
+   *   stringValue: 'Hi'
+   * });
+   * // 'Hi'
+   * decodeValue({
+   *   blobValue: Buffer.from('68656c6c6f')
+   * });
+   * // <Buffer 68 65 6c 6c 6f>
+   */
   function decodeValue(valueProto: ValueProto, typeCast?: Function) {
     const valueType = valueProto.valueType!;
     const value = valueProto[valueType];
@@ -366,7 +404,7 @@ export namespace entity {
       }
     }
   }
-  
+
   /**
    * Convert any native value to a protobuf Value message object.
    *
