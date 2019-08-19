@@ -327,7 +327,7 @@ export namespace entity {
     if (
       typeof typeCast === 'function' &&
       ((namesToConvert && namesToConvert.includes(valueProto.name!)) ||
-        (typesToConvert && typesToConvert.includes(valueProto.value!)))
+        (typesToConvert && typesToConvert.includes(valueProto.valueType!)))
     ) {
       return typeCast!(value);
     }
@@ -511,7 +511,7 @@ export namespace entity {
     entityProto: EntityProto,
     typeCast?: Function,
     typeCastable?: TypeCastableProperty
-  // tslint:disable-next-line: no-any
+    // tslint:disable-next-line: no-any
   ): any {
     // tslint:disable-next-line no-any
     const entityObject: any = {};

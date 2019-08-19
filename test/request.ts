@@ -1156,6 +1156,65 @@ describe('Request', () => {
     });
   });
 
+  describe('typeCast', () => {
+    const query = {};
+    const fakeEntities = [
+      {
+        stringValue: '1',
+        valueType: 'stringValue',
+        name: 'a',
+      },
+      {
+        stringValue: '0',
+        valueType: 'stringValue',
+        name: 'b',
+      },
+    ];
+
+    beforeEach(() => {
+      request.runQueryStream = sandbox.spy((query, options) => {
+        const stream = new Transform({objectMode: true});
+
+        setImmediate(() => {
+          fakeEntities.forEach(ent => {
+            // tslint:disable-next-line: no-any
+            const formattedObject: any = {};
+            if (options && typeof options!.typeCast === 'function') {
+              formattedObject[ent.name] = options!.typeCast!(ent.stringValue);
+              stream.push(formattedObject);
+            } else {
+              formattedObject[formattedObject[ent.name]] = ent.name;
+              stream.push(formattedObject);
+            }
+          });
+          stream.push(null);
+        });
+        return stream;
+      });
+    });
+
+    it('should create custom type `1` as true `0` as false', done => {
+      const expectedResult = [{a: true}, {b: false}];
+      const options = {
+        // tslint:disable-next-line: no-any
+        typeCast: (value: any) => {
+          return value === '1'; // 1 = true, 0 = false
+        },
+        typeCastable: {
+          types: ['stringValue'],
+        },
+      };
+      request.runQuery(
+        query,
+        options,
+        (err: Error | null, entities?: Entity[]) => {
+          assert.deepStrictEqual(entities, expectedResult);
+          done();
+        }
+      );
+    });
+  });
+
   describe('save', () => {
     it('should save with keys', done => {
       const expectedReq = {

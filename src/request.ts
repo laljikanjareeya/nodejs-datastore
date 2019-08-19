@@ -703,7 +703,7 @@ class DatastoreRequest {
    * @param {object} [options.typeCastable] List of properties and types for type casting.
    * @param {string[] | string} [options.typeCastable.names] List of properties to consider for type casting.
    * @param {string[] | string} [options.typeCastable.types] List of types to consider for type casting.
-   * 
+   *
    * @example
    * datastore.runQueryStream(query)
    *   .on('error', console.error)

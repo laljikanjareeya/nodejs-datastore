@@ -317,6 +317,29 @@ describe('entity', () => {
 
       assert.strictEqual(entity.decodeValueProto(valueProto), expectedValue);
     });
+
+    it('should return the value using typeCast function', () => {
+      // tslint:disable-next-line: no-any
+      const typeCastFunction = (value: any) => {
+        return value === '1';
+      };
+      const typeCastable = {
+        types: ['stringValue'],
+      };
+      const stringValueProto = {
+        valueType: 'stringValue',
+        stringValue: '1',
+      };
+
+      assert.strictEqual(
+        entity.decodeValueProto(
+          stringValueProto,
+          typeCastFunction,
+          typeCastable
+        ),
+        true
+      );
+    });
   });
 
   describe('encodeValue', () => {
