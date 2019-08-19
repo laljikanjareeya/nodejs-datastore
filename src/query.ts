@@ -17,7 +17,7 @@
 import arrify = require('arrify');
 import {Key} from 'readline';
 import {Datastore} from '.';
-import {Entity} from './entity';
+import {Entity, TypeCastableProperty} from './entity';
 import {Transaction} from './transaction';
 
 export type Operator = '=' | '<' | '>' | '<=' | '>=' | 'HAS_ANCESTOR';
@@ -396,6 +396,10 @@ class Query {
    *     If not specified, default values are chosen by Datastore for the
    *     operation. Learn more about strong and eventual consistency
    *     [here](https://cloud.google.com/datastore/docs/articles/balancing-strong-and-eventual-consistency-with-google-cloud-datastore).
+   * @param {function} [options.typeCast] The typeCast function to handle type casting.
+   * @param {object} [options.typeCastable] List of properties and types for type casting.
+   * @param {string[] | string} [options.typeCastable.names] List of properties to consider for type casting.
+   * @param {string[] | string} [options.typeCastable.types] List of types to consider for type casting.
    * @param {function} [callback] The callback function. If omitted, a readable
    *     stream instance is returned.
    * @param {?error} callback.err An error returned while making this request
@@ -518,6 +522,8 @@ export {Query};
 
 export interface RunQueryOptions {
   consistency?: 'strong' | 'eventual';
+  typeCast?: Function;
+  typeCastable?: TypeCastableProperty;
 }
 
 export interface RunQueryCallback {

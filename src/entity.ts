@@ -290,6 +290,10 @@ export namespace entity {
    *
    * @private
    * @param {object} valueProto The protobuf Value message to convert.
+   * @param {function} [typeCast] The typeCast function to handle type casting.
+   * @param {object} [typeCastable] List of properties and types for type casting.
+   * @param {string[] | string} [typeCastable.names] List of properties to consider for type casting.
+   * @param {string[] | string} [typeCastable.types] List of types to consider for type casting.
    * @returns {*}
    *
    * @example
@@ -308,13 +312,30 @@ export namespace entity {
    * });
    * // <Buffer 68 65 6c 6c 6f>
    */
-  export function decodeValueProto(valueProto: ValueProto) {
+  export function decodeValueProto(
+    valueProto: ValueProto,
+    typeCast?: Function,
+    typeCastable?: TypeCastableProperty
+  ) {
     const valueType = valueProto.valueType!;
     const value = valueProto[valueType];
+    const namesToConvert =
+      typeCastable && typeCastable.names ? arrify(typeCastable.names) : null;
+    const typesToConvert =
+      typeCastable && typeCastable.types ? arrify(typeCastable.types) : null;
 
+    if (
+      typeof typeCast === 'function' &&
+      ((namesToConvert && namesToConvert.includes(valueProto.name!)) ||
+        (typesToConvert && typesToConvert.includes(valueProto.value!)))
+    ) {
+      return typeCast!(value);
+    }
     switch (valueType) {
       case 'arrayValue': {
-        return value.values.map(entity.decodeValueProto);
+        return value.values.map((val: ValueProto) => {
+          return entity.decodeValueProto(val, typeCast, typeCastable);
+        });
       }
 
       case 'blobValue': {
@@ -334,7 +355,7 @@ export namespace entity {
       }
 
       case 'entityValue': {
-        return entity.entityFromEntityProto(value);
+        return entity.entityFromEntityProto(value, typeCast, typeCastable);
       }
 
       case 'keyValue': {
@@ -463,6 +484,10 @@ export namespace entity {
    *
    * @private
    * @param {object} entityProto The protocol entity object to convert.
+   * @param {function} [typeCast] The typeCast function to handle type casting.
+   * @param {object} [typeCastable] List of properties and types for type casting.
+   * @param {string[] | string} [typeCastable.names] List of properties to consider for type casting.
+   * @param {string[] | string} [typeCastable.types] List of types to consider for type casting.
    * @returns {object}
    *
    * @example
@@ -482,16 +507,25 @@ export namespace entity {
    * //   name: 'Stephen'
    * // }
    */
-  // tslint:disable-next-line no-any
-  export function entityFromEntityProto(entityProto: EntityProto): any {
+  export function entityFromEntityProto(
+    entityProto: EntityProto,
+    typeCast?: Function,
+    typeCastable?: TypeCastableProperty
+  // tslint:disable-next-line: no-any
+  ): any {
     // tslint:disable-next-line no-any
     const entityObject: any = {};
     const properties = entityProto.properties || {};
 
     // tslint:disable-next-line forin
     for (const property in properties) {
-      const value = properties[property];
-      entityObject[property] = entity.decodeValueProto(value);
+      const value: ValueProto = properties[property];
+      value.name = property;
+      entityObject[property] = entity.decodeValueProto(
+        value,
+        typeCast,
+        typeCastable
+      );
     }
 
     return entityObject;
@@ -677,6 +711,10 @@ export namespace entity {
    * @param {object[]} results The response array.
    * @param {object} results.entity An entity object.
    * @param {object} results.entity.key The entity's key.
+   * @param {function} [typeCast] The typeCast function to handle type casting.
+   * @param {object} [typeCastable] List of properties and types for type casting.
+   * @param {string[] | string} [typeCastable.names] List of properties to consider for type casting.
+   * @param {string[] | string} [typeCastable.types] List of types to consider for type casting.
    * @returns {object[]}
    *
    * @example
@@ -691,9 +729,17 @@ export namespace entity {
    *   //
    * });
    */
-  export function formatArray(results: ResponseResult[]) {
+  export function formatArray(
+    results: ResponseResult[],
+    typeCast?: Function,
+    typeCastable?: TypeCastableProperty
+  ) {
     return results.map(result => {
-      const ent = entity.entityFromEntityProto(result.entity);
+      const ent = entity.entityFromEntityProto(
+        result.entity,
+        typeCast,
+        typeCastable
+      );
       ent[entity.KEY_SYMBOL] = entity.keyFromKeyProto(result.entity.key!);
       return ent;
     });
@@ -1134,6 +1180,7 @@ export interface ValueProto {
   values?: ValueProto[];
   // tslint:disable-next-line no-any
   value?: any;
+  name?: string;
 }
 
 export interface EntityProto {
@@ -1160,4 +1207,9 @@ export interface KeyProto {
 
 export interface ResponseResult {
   entity: EntityProto;
+}
+
+export interface TypeCastableProperty {
+  names?: string | string[];
+  types?: string | string[];
 }

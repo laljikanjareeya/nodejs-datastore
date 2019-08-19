@@ -31,7 +31,13 @@ const gapic = Object.freeze({
   v1: require('./v1'),
 });
 
-import {entity, Entity, KeyProto, ValueProto} from './entity';
+import {
+  entity,
+  Entity,
+  KeyProto,
+  ValueProto,
+  TypeCastableProperty,
+} from './entity';
 import {
   Query,
   RunQueryInfo,
@@ -229,6 +235,10 @@ class DatastoreRequest {
    * @param {Key|Key[]} keys Datastore key object(s).
    * @param {object} [options] Optional configuration. See {@link Datastore#get}
    *     for a complete list of options.
+   * @param {function} [options.typeCast] The typeCast function to handle type casting.
+   * @param {object} [options.typeCastable] List of properties and types for type casting.
+   * @param {string[] | string} [options.typeCastable.names] List of properties to consider for type casting.
+   * @param {string[] | string} [options.typeCastable.types] List of types to consider for type casting.
    *
    * @example
    * const keys = [
@@ -280,7 +290,11 @@ class DatastoreRequest {
             return;
           }
 
-          const entities = entity.formatArray(resp.found);
+          const entities = entity.formatArray(
+            resp.found,
+            options.typeCast,
+            options.typeCastable
+          );
           const nextKeys = (resp.deferred || [])
             .map(entity.keyFromKeyProto)
             .map(entity.keyToKeyProto);
@@ -423,6 +437,10 @@ class DatastoreRequest {
    *     [here](https://cloud.google.com/datastore/docs/articles/balancing-strong-and-eventual-consistency-with-google-cloud-datastore).
    * @param {object} [options.gaxOptions] Request configuration options, outlined
    *     here: https://googleapis.github.io/gax-nodejs/global.html#CallOptions.
+   * @param {function} [options.typeCast] The typeCast function to handle type casting.
+   * @param {object} [options.typeCastable] List of properties and types for type casting.
+   * @param {string[] | string} [options.typeCastable.names] List of properties to consider for type casting.
+   * @param {string[] | string} [options.typeCastable.types] List of types to consider for type casting.
    * @param {function} callback The callback function.
    * @param {?error} callback.err An error returned while making this request
    * @param {object|object[]} callback.entity The entity object(s) which match
@@ -571,6 +589,10 @@ class DatastoreRequest {
    *     [here](https://cloud.google.com/datastore/docs/articles/balancing-strong-and-eventual-consistency-with-google-cloud-datastore).
    * @param {object} [options.gaxOptions] Request configuration options, outlined
    *     here: https://googleapis.github.io/gax-nodejs/global.html#CallOptions.
+   * @param {function} [options.typeCast] The typeCast function to handle type casting.
+   * @param {object} [options.typeCastable] List of properties and types for type casting.
+   * @param {string[] | string} [options.typeCastable.names] List of properties to consider for type casting.
+   * @param {string[] | string} [options.typeCastable.types] List of types to consider for type casting.
    * @param {function} [callback] The callback function. If omitted, a readable
    *     stream instance is returned.
    * @param {?error} callback.err An error returned while making this request
@@ -677,7 +699,11 @@ class DatastoreRequest {
    * @param {object} [options] Optional configuration.
    * @param {object} [options.gaxOptions] Request configuration options, outlined
    *     here: https://googleapis.github.io/gax-nodejs/global.html#CallOptions.
-   *
+   * @param {function} [options.typeCast] The typeCast function to handle type casting.
+   * @param {object} [options.typeCastable] List of properties and types for type casting.
+   * @param {string[] | string} [options.typeCastable.names] List of properties to consider for type casting.
+   * @param {string[] | string} [options.typeCastable.types] List of types to consider for type casting.
+   * 
    * @example
    * datastore.runQueryStream(query)
    *   .on('error', console.error)
@@ -748,7 +774,11 @@ class DatastoreRequest {
       let entities: Any[] = [];
 
       if (resp.batch.entityResults) {
-        entities = entity.formatArray(resp.batch.entityResults);
+        entities = entity.formatArray(
+          resp.batch.entityResults,
+          options.typeCast,
+          options.typeCastable
+        );
       }
 
       // Emit each result right away, then get the rest if necessary.
@@ -1306,6 +1336,8 @@ export interface AllocateIdsOptions {
 export interface CreateReadStreamOptions {
   consistency?: string;
   gaxOptions?: CallOptions;
+  typeCast?: Function;
+  typeCastable?: TypeCastableProperty;
 }
 export interface CommitCallback {
   (err?: Error | null, resp?: google.datastore.v1.CommitResponse): void;
@@ -1358,6 +1390,8 @@ export interface RequestOptions {
 export interface RunQueryStreamOptions {
   gaxOptions?: CallOptions;
   consistency?: 'strong' | 'eventual';
+  typeCast?: Function;
+  typeCastable?: TypeCastableProperty;
 }
 export interface SaveCallback {
   (a?: Error | null, b?: Entity): void;
