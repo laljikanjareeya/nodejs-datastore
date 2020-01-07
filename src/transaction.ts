@@ -28,6 +28,7 @@ import {
   CommitResponse,
   DatastoreRequest,
   RequestOptions,
+  SaveCallback,
 } from './request';
 
 /**
@@ -672,7 +673,7 @@ class Transaction extends DatastoreRequest {
    * });
    */
   // tslint:disable-next-line no-any
-  save(entities: Entities): any {
+  save(entities: Entities, callback?: CallOptions | SaveCallback): any {
     arrify(entities).forEach((ent: Entity) => {
       this.modifiedEntities_.push({
         entity: {
@@ -682,6 +683,9 @@ class Transaction extends DatastoreRequest {
         args: [ent],
       });
     });
+    if (callback) {
+      (callback as SaveCallback)!();
+    }
   }
 }
 
@@ -717,7 +721,7 @@ export interface RunOptions {
  * that a callback is omitted.
  */
 promisifyAll(Transaction, {
-  exclude: ['createQuery', 'delete', 'save'],
+  exclude: ['createQuery', 'delete'],
 });
 
 /**

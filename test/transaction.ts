@@ -38,7 +38,7 @@ const fakePfy = Object.assign({}, pfy, {
       return;
     }
     promisified = true;
-    assert.deepStrictEqual(options.exclude, ['createQuery', 'delete', 'save']);
+    assert.deepStrictEqual(options.exclude, ['createQuery', 'delete']);
   },
 });
 
@@ -633,6 +633,11 @@ describe('Transaction', () => {
         })[0];
         assert.deepStrictEqual(queuedEntity.args, [match]);
       });
+    });
+
+    it('should call the callback', done => {
+      const entities = [{key: key('Product678'), data: 678}];
+      transaction.save(entities, done);
     });
   });
 });
